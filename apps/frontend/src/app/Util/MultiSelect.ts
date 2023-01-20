@@ -3,8 +3,8 @@ import { toggleArr } from "./Util"
 export function handleMultiSelect<T>(allKeys: T[]) {
   return (arr: T[], v: T): T[] => {
     const len = arr.length
-    if (len === allKeys.length) return [v]
-    if (len === 1 && arr[0] === v) return [...allKeys]
+    if (len === allKeys.length || len === 0) return [v]
+    if (len === 1 && arr[0] === v) return []
     return [...new Set(toggleArr(arr, v))]
   }
 }

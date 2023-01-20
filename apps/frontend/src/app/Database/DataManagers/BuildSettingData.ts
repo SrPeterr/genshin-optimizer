@@ -54,9 +54,9 @@ export class BuildSettingDataManager extends DataManager<CharacterKey, "buildSet
     if (!mainStatKeys || !mainStatKeys.sands || !mainStatKeys.goblet || !mainStatKeys.circlet)
       mainStatKeys = deepClone(initialBuildSettings.mainStatKeys)
     else { // make sure the arrays are not empty
-      (["sands", "goblet", "circlet"] as const).forEach(sk => {
-        if (!mainStatKeys[sk].length) mainStatKeys[sk] = [...Artifact.slotMainStats(sk)]
-      })
+      // (["sands", "goblet", "circlet"] as const).forEach(sk => {
+      //   if (!mainStatKeys[sk].length) mainStatKeys[sk] = [...Artifact.slotMainStats(sk)]
+      // })
     }
 
     if (!optimizationTarget || !Array.isArray(optimizationTarget)) optimizationTarget = undefined
