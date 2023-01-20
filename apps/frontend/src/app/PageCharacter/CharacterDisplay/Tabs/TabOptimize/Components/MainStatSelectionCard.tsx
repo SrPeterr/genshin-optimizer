@@ -86,7 +86,7 @@ export default function MainStatSelectionCard({ disabled = false, filteredArtIds
             {mainKeys.map((mainStatKey, i) => {
               const element = allElementsWithPhy.find(ele => mainStatKey.includes(ele))
               const color = selectedMainKeys.length === 0
-                ? "info"
+                ? "primary"
                 : (selectedMainKeys.includes(mainStatKey)
                   ? element ?? "success"
                   : "secondary")
