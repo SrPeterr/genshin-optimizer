@@ -12,7 +12,6 @@ import { pruneAll, pruneExclusion } from '../common'
 import { WorkerCoordinator } from '../coordinator'
 
 export class GOSolver extends WorkerCoordinator<WorkerCommand, WorkerResult> {
-  private maxIterateSize = 16_000_000
   private status: Record<'tested' | 'failed' | 'skipped' | 'total', number>
   private exclusion: Count['exclusion']
   private topN: number
@@ -54,9 +53,9 @@ export class GOSolver extends WorkerCoordinator<WorkerCommand, WorkerResult> {
   }
 
   async solve() {
-    const { exclusion, maxIterateSize } = this
+    const { exclusion } = this
     this.finalizedResults = []
-    await this.execute([{ command: 'count', exclusion, maxIterateSize }])
+    await this.execute([{ command: 'count', exclusion }])
     this.notifiedBroadcast({ command: 'finalize' })
     await this.execute([])
     return this.finalizedResults

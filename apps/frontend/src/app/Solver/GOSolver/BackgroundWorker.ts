@@ -11,6 +11,11 @@ import { BNBSplitWorker } from './BNBSplitWorker'
 import { ComputeWorker } from './ComputeWorker'
 import { DefaultSplitWorker } from './DefaultSplitWorker'
 
+// TODO: re-tune and rename these parameters
+const iterateSizeGroupThreshold = 1_000_000_000
+const maxIterateNestedSize = 100_000_000
+const maxIterateSize = 16_000_000
+
 declare function postMessage(command: WorkerCommand | WorkerResult): void
 
 let splitWorker: SplitWorker, computeWorker: ComputeWorker
@@ -19,15 +24,21 @@ async function handleEvent(e: MessageEvent<WorkerCommand>): Promise<void> {
   const { data } = e,
     { command } = data
   switch (command) {
-    case 'split':
-      for (const filter of splitWorker.split(
-        data.filter,
-        data.maxIterateSize
-      )) {
-        postMessage({ command: 'iterate', filter })
-        await new Promise((r) => setTimeout(r)) // in case a `threshold` is sent over
+    case 'split': {
+      const resplit = data.count > iterateSizeGroupThreshold
+      const maxSize = resplit ? maxIterateNestedSize : maxIterateSize
+
+      for (const filter of splitWorker.split(data.filter, maxSize)) {
+        if (resplit) {
+          const count = countBuilds(filterArts(computeWorker.arts, filter))
+          postMessage({ command: 'split', filter, count })
+        } else {
+          postMessage({ command: 'iterate', filter })
+        }
+        await new Promise((r) => setTimeout(r)) // in case a `threshold` is broadcasted
       }
       break
+    }
     case 'iterate':
       computeWorker.compute(data.filter)
       break
@@ -43,7 +54,7 @@ async function handleEvent(e: MessageEvent<WorkerCommand>): Promise<void> {
       break
     }
     case 'count': {
-      const { exclusion, maxIterateSize } = data,
+      const { exclusion } = data,
         arts = computeWorker.arts
       const perms = filterFeasiblePerm(
         artSetPerm(exclusion, [
@@ -55,8 +66,9 @@ async function handleEvent(e: MessageEvent<WorkerCommand>): Promise<void> {
       )
       let count = 0
       for (const filter of perms) {
-        postMessage({ command: 'split', filter, maxIterateSize })
-        count += countBuilds(filterArts(arts, filter))
+        const currentCount = countBuilds(filterArts(arts, filter))
+        postMessage({ command: 'split', filter, count: currentCount })
+        count += currentCount
       }
       postMessage({ resultType: 'count', count })
       break
